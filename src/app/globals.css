@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+/* ── Design tokens via Tailwind v4 @theme ── */
+@theme {
+  /* Colors */
+  --color-offwhite: #F2F0E9;
+  --color-black: #151515;
+  --color-red: #E44339;
+  --color-grey: #777777;
+
+  /* Font families (CSS vars set by Next.js font loader in layout.tsx) */
+  --font-display: var(--font-display-var, sans-serif);
+  --font-body: var(--font-body-var, sans-serif);
+  --font-mono: var(--font-mono-var, monospace);
+}
+
+/* ── Base ── */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #F2F0E9;
+  color: #151515;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Text selection ── */
+::selection {
+  background-color: #E44339;
+  color: #FFFFFF;
+}
+
+/* ── Focus ring ── */
+:focus-visible {
+  outline: 2px solid #E44339;
+  outline-offset: 3px;
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #F2F0E9; }
+::-webkit-scrollbar-thumb { background: #bbb; }
+::-webkit-scrollbar-thumb:hover { background: #151515; }
+
+/* ── Font utility classes (Tailwind v4 compatible) ── */
+.font-display { font-family: var(--font-display), sans-serif; }
+.font-body    { font-family: var(--font-body), sans-serif; }
+.font-mono    { font-family: var(--font-mono), monospace; }
