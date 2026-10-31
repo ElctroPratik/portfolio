@@ -22,7 +22,7 @@ export default function Hero() {
   return (
     <section
       id="about"
-      className="bg-[#F2F0E9] pt-[54px] md:pt-[72px] overflow-hidden"
+      className="bg-[#F2F0E9] pt-[72px] overflow-hidden"
     >
       {/* ── MOBILE HERO (< lg): Perfectly leveled 2-column editorial composition ── */}
       <div className="lg:hidden relative flex flex-col justify-start w-full max-w-[640px] mx-auto px-5 pt-3 pb-8 sm:px-8 overflow-hidden">
