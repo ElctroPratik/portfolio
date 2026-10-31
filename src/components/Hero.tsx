@@ -22,13 +22,13 @@ export default function Hero() {
   return (
     <section
       id="about"
-      className="bg-[#F2F0E9] pt-[68px] md:pt-[72px] overflow-hidden"
+      className="bg-[#F2F0E9] pt-[54px] md:pt-[72px] overflow-hidden"
     >
       {/* ── MOBILE HERO (< lg): Perfectly leveled 2-column editorial composition ── */}
-      <div className="lg:hidden relative min-h-[calc(100svh-68px)] flex flex-col justify-center w-full max-w-[640px] mx-auto px-5 py-6 sm:px-8 overflow-hidden">
+      <div className="lg:hidden relative flex flex-col justify-start w-full max-w-[640px] mx-auto px-5 pt-3 pb-8 sm:px-8 overflow-hidden">
         
         {/* Top: Category Label & Full-Width Switcher */}
-        <div className="flex flex-col gap-2 relative z-20 mb-5 sm:mb-6 w-full">
+        <div className="flex flex-col gap-1.5 relative z-20 mb-3 sm:mb-4 w-full">
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
