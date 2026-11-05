@@ -13,7 +13,7 @@ export default function SocialProof() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 md:mb-14 border-b border-[#151515]/10 pb-6">
           <div>
             <span className="font-mono text-[10px] sm:text-[11px] tracking-[0.24em] text-[#E44339] uppercase font-bold block mb-2">
-              [ ARTIST NETWORK & REPUTATION ]
+              [ VERIFIED ARTIST RECOGNITION ]
             </span>
             <h2
               className="font-display font-black leading-[0.88] tracking-[-0.03em] text-[#151515] uppercase"
@@ -24,12 +24,12 @@ export default function SocialProof() {
           </div>
 
           <p className="font-body text-[14px] sm:text-[15px] text-[#777777] max-w-md leading-relaxed">
-            Direct artwork recognition, viral music edits and visual identities developed for independent hip-hop artists and cultural movements.
+            Direct artwork recognition and visual identities verified by leading voices across the Indian hip-hop circuit.
           </p>
         </div>
 
-        {/* 6-Card Collaborator Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* 3-Card Verified Collaborator Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
           {collaborators.map((artist, idx) => (
             <motion.div
               key={artist.name}
