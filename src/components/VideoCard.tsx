@@ -11,7 +11,7 @@ interface Props {
   index: number;
 }
 
-// ── Helpers ─────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────
 function fmt(secs: number): string {
   if (!secs || isNaN(secs)) return "0:00";
   const m = Math.floor(secs / 60);
@@ -19,20 +19,18 @@ function fmt(secs: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-// ── Icons ────────────────────────────────────────────────────
-const PlayIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+// ── Icons ─────────────────────────────────────────────────────
+const PlayIcon = ({ size = 20 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
     <polygon points="5,3 19,12 5,21" />
   </svg>
 );
-
 const PauseIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
     <rect x="6" y="4" width="4" height="16" rx="1" />
     <rect x="14" y="4" width="4" height="16" rx="1" />
   </svg>
 );
-
 const VolumeIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
@@ -40,7 +38,6 @@ const VolumeIcon = () => (
     <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
   </svg>
 );
-
 const MuteIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
@@ -48,22 +45,20 @@ const MuteIcon = () => (
     <line x1="17" y1="9" x2="23" y2="15" />
   </svg>
 );
-
-const ExternalIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+const FullscreenIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="15 3 21 3 21 9" />
-    <line x1="10" y1="14" x2="21" y2="3" />
+    <polyline points="9 21 3 21 3 15" />
+    <line x1="21" y1="3" x2="14" y2="10" />
+    <line x1="3" y1="21" x2="10" y2="14" />
   </svg>
 );
-
 const EyeIcon = () => (
   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
     <circle cx="12" cy="12" r="3" />
   </svg>
 );
-
 const InstaIcon = () => (
   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="2" y="2" width="20" height="20" rx="5" />
@@ -72,58 +67,59 @@ const InstaIcon = () => (
   </svg>
 );
 
-// ── Component ────────────────────────────────────────────────
+// ── Component ─────────────────────────────────────────────────
 export default function VideoCard({ video, index }: Props) {
-  // Unique stable DOM id for the YouTube player div
-  const uid = useId().replace(/:/g, "");
-  const domId = `yt-${uid}`;
+  const uid    = useId().replace(/:/g, "");
+  const domId  = `yt-${uid}`;
 
-  const playerRef = useRef<any>(null);
-  const pollRef   = useRef<ReturnType<typeof setInterval> | null>(null);
+  const playerRef  = useRef<any>(null);
+  const pollRef    = useRef<ReturnType<typeof setInterval> | null>(null);
   const seekBarRef = useRef<HTMLDivElement>(null);
 
-  const [ready,    setReady]    = useState(false);
-  const [playing,  setPlaying]  = useState(false);
-  const [muted,    setMuted]    = useState(false);
-  const [current,  setCurrent]  = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [dragging, setDragging] = useState(false);
+  // facade: don't load iframe until user clicks play
+  const [activated, setActivated] = useState(false);
+  const [ready,     setReady]     = useState(false);
+  const [playing,   setPlaying]   = useState(false);
+  const [muted,     setMuted]     = useState(false);
+  const [current,   setCurrent]   = useState(0);
+  const [duration,  setDuration]  = useState(0);
+  const [dragging,  setDragging]  = useState(false);
 
-  const progress = duration > 0 ? (current / duration) * 100 : 0;
+  const progress     = duration > 0 ? (current / duration) * 100 : 0;
+  const thumbnailUrl = `https://img.youtube.com/vi/${video.youtubeId}/maxresdefault.jpg`;
 
-  // ── YouTube init ─────────────────────────────────────────
+  // ── Init YouTube player ONLY after first click ────────────
   useEffect(() => {
+    if (!activated) return;
     let destroyed = false;
 
     loadYouTubeAPI(() => {
       if (destroyed) return;
-
       playerRef.current = new (window as any).YT.Player(domId, {
         videoId: video.youtubeId,
         playerVars: {
-          controls:        0,
-          modestbranding:  1,
-          rel:             0,
-          showinfo:        0,
-          iv_load_policy:  3,
-          disablekb:       0,
-          fs:              1,
-          playsinline:     1,
-          origin:          typeof window !== "undefined" ? window.location.origin : "",
+          autoplay:       1,
+          controls:       0,   // ← hide all YouTube UI
+          modestbranding: 1,
+          rel:            0,
+          showinfo:       0,
+          iv_load_policy: 3,
+          disablekb:      0,
+          fs:             0,
+          playsinline:    1,
+          origin:         typeof window !== "undefined" ? window.location.origin : "",
         },
         events: {
-          onReady: () => {
-            if (!destroyed) setReady(true);
+          onReady: (e: any) => {
+            if (destroyed) return;
+            setReady(true);
+            e.target.playVideo();
           },
           onStateChange: (e: any) => {
             if (destroyed) return;
             const S = (window as any).YT.PlayerState;
-            if (e.data === S.PLAYING) {
-              setPlaying(true);
-              startPoll();
-            } else {
-              setPlaying(false);
-              stopPoll();
+            if (e.data === S.PLAYING) { setPlaying(true);  startPoll(); }
+            else                      { setPlaying(false); stopPoll();
               if (e.data === S.ENDED) setCurrent(0);
             }
           },
@@ -137,9 +133,9 @@ export default function VideoCard({ video, index }: Props) {
       playerRef.current?.destroy?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [activated]);
 
-  // ── Polling ──────────────────────────────────────────────
+  // ── Poll ──────────────────────────────────────────────────
   const startPoll = () => {
     stopPoll();
     pollRef.current = setInterval(() => {
@@ -149,27 +145,21 @@ export default function VideoCard({ video, index }: Props) {
       setDuration(p.getDuration() || 0);
     }, 250);
   };
-
   const stopPoll = () => {
-    if (pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
-    }
+    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
   };
 
-  // ── Controls ─────────────────────────────────────────────
+  // ── Controls ──────────────────────────────────────────────
   const togglePlay = () => {
     if (!playerRef.current || !ready) return;
     playing ? playerRef.current.pauseVideo() : playerRef.current.playVideo();
   };
-
   const toggleMute = () => {
     if (!playerRef.current || !ready) return;
     if (muted) { playerRef.current.unMute(); setMuted(false); }
-    else        { playerRef.current.mute();   setMuted(true);  }
+    else        { playerRef.current.mute();  setMuted(true);  }
   };
 
-  // Seek by clicking / dragging the progress bar
   const seekTo = (clientX: number) => {
     if (!playerRef.current || !duration || !seekBarRef.current) return;
     const rect = seekBarRef.current.getBoundingClientRect();
@@ -179,10 +169,18 @@ export default function VideoCard({ video, index }: Props) {
     setCurrent(time);
   };
 
-  const handleBarClick   = (e: React.MouseEvent<HTMLDivElement>)      => seekTo(e.clientX);
-  const handleMouseMove  = (e: React.MouseEvent<HTMLDivElement>)      => { if (dragging) seekTo(e.clientX); };
-  const handleTouchMove  = (e: React.TouchEvent<HTMLDivElement>)      => { if (dragging) seekTo(e.touches[0].clientX); };
+  const handleBarClick  = (e: React.MouseEvent<HTMLDivElement>) => seekTo(e.clientX);
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => { if (dragging) seekTo(e.clientX); };
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => { if (dragging) seekTo(e.touches[0].clientX); };
 
+  const handleFullscreen = () => {
+    // Try native fullscreen on the iframe wrapper
+    const el = document.getElementById(domId + "-wrap");
+    if (el?.requestFullscreen) el.requestFullscreen();
+    else window.open(`https://www.youtube.com/watch?v=${video.youtubeId}`, "_blank");
+  };
+
+  // ── Render ────────────────────────────────────────────────
   return (
     <motion.article
       initial={{ opacity: 0, y: 24 }}
@@ -190,20 +188,58 @@ export default function VideoCard({ video, index }: Props) {
       transition={{ duration: 0.45, delay: index * 0.1, ease: CUSTOM_EASE }}
       className="flex flex-col bg-[#151515] shadow-2xl"
     >
-      {/* ── 16 : 9 Video Frame ─────────────────────────── */}
-      <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
-        {/* YouTube player mounts here */}
-        <div id={domId} className="absolute inset-0 w-full h-full" />
+      {/* ── 16:9 Video Area ─────────────────────────── */}
+      <div
+        id={domId + "-wrap"}
+        className="relative w-full bg-black overflow-hidden"
+        style={{ aspectRatio: "16/9" }}
+      >
+        {!activated ? (
+          /* ── FACADE: custom thumbnail + play button ── */
+          <>
+            {/* Thumbnail */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={thumbnailUrl}
+              alt={video.title}
+              className="absolute inset-0 w-full h-full object-cover"
+              loading="lazy"
+            />
+            {/* Subtle dark overlay */}
+            <div className="absolute inset-0 bg-black/30" />
 
-        {/* Spinner while API loads */}
-        {!ready && (
-          <div className="absolute inset-0 bg-[#111] flex items-center justify-center pointer-events-none z-10">
-            <div className="w-5 h-5 border-2 border-[#E44339] border-t-transparent rounded-full animate-spin" />
-          </div>
+            {/* Custom play button */}
+            <button
+              onClick={() => setActivated(true)}
+              className="absolute inset-0 flex items-center justify-center group cursor-pointer"
+              aria-label={`Play ${video.title}`}
+            >
+              <span className="relative flex items-center justify-center w-16 h-16 bg-[#E44339] rounded-full shadow-2xl group-hover:scale-110 transition-transform duration-200">
+                <span className="ml-1">
+                  <PlayIcon size={22} />
+                </span>
+              </span>
+            </button>
+          </>
+        ) : (
+          /* ── ACTIVE: YouTube iframe (controls=0, no branding) ── */
+          <>
+            <div id={domId} className="absolute inset-0 w-full h-full" />
+
+            {/* Spinner while buffering */}
+            {!ready && (
+              <div className="absolute inset-0 bg-[#111] flex items-center justify-center z-10 pointer-events-none">
+                <div className="w-6 h-6 border-2 border-[#E44339] border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+
+            {/* Cover the YouTube logo that appears bottom-right on hover */}
+            <div className="absolute bottom-0 right-0 w-24 h-10 bg-[#151515] z-10 pointer-events-none" />
+          </>
         )}
       </div>
 
-      {/* ── Custom Player Controls (separate bar below video) ── */}
+      {/* ── Custom Controls Bar (always visible below video) ── */}
       <div className="bg-[#0d0d0d] px-4 pt-3 pb-3 select-none">
 
         {/* Progress bar */}
@@ -219,30 +255,25 @@ export default function VideoCard({ video, index }: Props) {
           onTouchEnd={() => setDragging(false)}
           onTouchMove={handleTouchMove}
         >
-          {/* Filled portion */}
           <div
             className="h-full bg-[#E44339] relative transition-none"
             style={{ width: `${progress}%` }}
           >
-            {/* Scrubber dot */}
             <div className="absolute right-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 bg-[#E44339] rounded-full scale-0 group-hover:scale-100 transition-transform duration-150" />
           </div>
         </div>
 
         {/* Button row */}
         <div className="flex items-center justify-between gap-3">
-
-          {/* Left: Play + Mute + Time */}
           <div className="flex items-center gap-3">
 
-            {/* Play / Pause */}
+            {/* Play / Pause — if not activated, clicking here also activates */}
             <button
-              onClick={togglePlay}
-              disabled={!ready}
-              className="text-white hover:text-[#E44339] transition-colors duration-150 disabled:opacity-30 flex-shrink-0"
+              onClick={() => { if (!activated) setActivated(true); else togglePlay(); }}
+              className="text-white hover:text-[#E44339] transition-colors duration-150 flex-shrink-0"
               aria-label={playing ? "Pause" : "Play"}
             >
-              {playing ? <PauseIcon /> : <PlayIcon />}
+              {playing ? <PauseIcon /> : <PlayIcon size={18} />}
             </button>
 
             {/* Mute */}
@@ -255,26 +286,25 @@ export default function VideoCard({ video, index }: Props) {
               {muted ? <MuteIcon /> : <VolumeIcon />}
             </button>
 
-            {/* Time */}
+            {/* Timestamp */}
             <span className="font-mono text-[9px] tracking-[0.1em] text-[#555] tabular-nums">
               {fmt(current)}&nbsp;/&nbsp;{fmt(duration)}
             </span>
           </div>
 
-          {/* Right: open on YouTube */}
-          <a
-            href={`https://www.youtube.com/watch?v=${video.youtubeId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#444] hover:text-white transition-colors duration-150 flex-shrink-0"
-            aria-label="Open on YouTube"
+          {/* Fullscreen */}
+          <button
+            onClick={handleFullscreen}
+            disabled={!ready}
+            className="text-[#444] hover:text-white transition-colors duration-150 disabled:opacity-30 flex-shrink-0"
+            aria-label="Fullscreen"
           >
-            <ExternalIcon />
-          </a>
+            <FullscreenIcon />
+          </button>
         </div>
       </div>
 
-      {/* ── Video Info ──────────────────────────────────── */}
+      {/* ── Video Info ──────────────────────────────── */}
       <div className="bg-[#151515] border-t border-[#1e1e1e] px-4 pt-3.5 pb-4 flex flex-col gap-2.5">
 
         {/* Tags */}
@@ -296,9 +326,9 @@ export default function VideoCard({ video, index }: Props) {
 
         {/* Stats + Instagram */}
         <div className="flex items-center justify-between pt-0.5">
-          <div className="flex items-center gap-1.5 text-[#666]">
+          <div className="flex items-center gap-1.5 text-[#555]">
             <EyeIcon />
-            <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.14em] text-[#666]">
+            <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.14em] text-[#555]">
               ~{video.views} VIEWS
             </span>
           </div>
