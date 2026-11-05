@@ -19,7 +19,7 @@ export default function ProjectCard({ project, onClick, index }: ProjectCardProp
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.45, delay: index * 0.05, ease: CUSTOM_EASE }}
       onClick={onClick}
-      className="group cursor-pointer flex flex-col bg-transparent"
+      className="group cursor-pointer flex flex-col bg-transparent select-none"
     >
       {/* ── 3:4 POSTER CONTAINER ── */}
       <div
@@ -34,7 +34,7 @@ export default function ProjectCard({ project, onClick, index }: ProjectCardProp
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
         />
 
-        {/* ── RESTING BADGE: Visible before hover ── */}
+        {/* ── RESTING BADGE: Visible by default on all screens ── */}
         <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5 bg-[#151515]/90 border border-white/10 px-2 py-0.5 sm:px-2.5 sm:py-1 backdrop-blur-md shadow-md pointer-events-none group-hover:opacity-0 transition-opacity duration-200">
           <span className="w-1.5 h-1.5 rounded-full bg-[#E44339] animate-pulse" />
           <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.14em] font-bold text-white uppercase">
@@ -42,28 +42,28 @@ export default function ProjectCard({ project, onClick, index }: ProjectCardProp
           </span>
         </div>
 
-        {/* ── HOVER OVERLAY: Attention-grabbing results in full poster view ── */}
-        <div className="absolute inset-0 z-20 bg-[#151515]/94 backdrop-blur-md p-3.5 sm:p-5 flex flex-col justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-250 select-none">
+        {/* ── DESKTOP-ONLY HOVER OVERLAY (Hidden on mobile/touch to prevent accidental touch redirects) ── */}
+        <div className="hidden lg:flex absolute inset-0 z-20 bg-[#151515]/94 backdrop-blur-md p-5 flex-col justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-250 pointer-events-none group-hover:pointer-events-auto">
           {/* Top Row */}
           <div className="flex items-center justify-between border-b border-white/10 pb-2">
-            <span className="font-mono text-[8px] sm:text-[9.5px] tracking-[0.2em] text-[#E44339] uppercase font-bold">
+            <span className="font-mono text-[9.5px] tracking-[0.2em] text-[#E44339] uppercase font-bold">
               [ {project.badge || "VERIFIED RESULT"} ]
             </span>
-            <span className="font-mono text-[8.5px] sm:text-[10px] tracking-[0.16em] text-[#777777]">
+            <span className="font-mono text-[10px] tracking-[0.16em] text-[#777777]">
               NO. {project.number}
             </span>
           </div>
 
           {/* Center Results Section */}
           <div className="flex flex-col items-center justify-center text-center my-auto py-1">
-            <span className="font-mono text-[8.5px] sm:text-[10px] tracking-[0.24em] text-white/60 uppercase font-medium mb-0.5">
+            <span className="font-mono text-[10px] tracking-[0.24em] text-white/60 uppercase font-medium mb-0.5">
               AUDIENCE IMPACT
             </span>
             <div className="flex items-baseline justify-center gap-1">
-              <span className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#E44339] tracking-[-0.03em] leading-none">
+              <span className="font-display font-black text-4xl lg:text-5xl text-[#E44339] tracking-[-0.03em] leading-none">
                 {project.views}
               </span>
-              <span className="font-mono text-[11px] sm:text-[12px] font-bold text-white/90 tracking-wider">
+              <span className="font-mono text-[12px] font-bold text-white/90 tracking-wider">
                 VIEWS
               </span>
             </div>
@@ -71,7 +71,7 @@ export default function ProjectCard({ project, onClick, index }: ProjectCardProp
             {/* Recognition & Artist Mention (with custom orange clickable link) */}
             <div className="mt-2.5 px-2">
               {project.artistMention ? (
-                <p className="font-body text-[11px] sm:text-[13px] text-[#F2F0E9]/90 leading-snug">
+                <p className="font-body text-[13px] text-[#F2F0E9]/90 leading-snug">
                   {project.artistMention.prefix}
                   <a
                     href={project.artistMention.url}
@@ -83,13 +83,13 @@ export default function ProjectCard({ project, onClick, index }: ProjectCardProp
                     {project.artistMention.name}
                   </a>
                   {project.artistMention.role && (
-                    <span className="text-white/60 text-[10px] sm:text-[11px] ml-1">
+                    <span className="text-white/60 text-[11px] ml-1">
                       {project.artistMention.role}
                     </span>
                   )}
                 </p>
               ) : (
-                <p className="font-body text-[11px] sm:text-[13px] text-[#F2F0E9]/85 leading-snug">
+                <p className="font-body text-[13px] text-[#F2F0E9]/85 leading-snug">
                   {project.resultText}
                 </p>
               )}
@@ -104,7 +104,7 @@ export default function ProjectCard({ project, onClick, index }: ProjectCardProp
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="flex-1 flex items-center justify-center gap-1.5 bg-[#E44339] hover:bg-white hover:text-[#151515] text-white font-display font-bold text-[9.5px] sm:text-[11px] tracking-[0.12em] py-2 px-2.5 uppercase transition-colors shadow-md shrink-0"
+                className="flex-1 flex items-center justify-center gap-1.5 bg-[#E44339] hover:bg-white hover:text-[#151515] text-white font-display font-bold text-[11px] tracking-[0.12em] py-2 px-2.5 uppercase transition-colors shadow-md shrink-0"
               >
                 <svg
                   className="w-3 h-3"
@@ -129,7 +129,7 @@ export default function ProjectCard({ project, onClick, index }: ProjectCardProp
               aria-label="Expand artwork details"
             >
               <svg
-                className="w-3 h-3"
+                className="w-3.5 h-3.5"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
