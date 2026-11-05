@@ -28,9 +28,9 @@ export const collaborators: Collaborator[] = [
   },
   {
     name: "DHADKAN (DAKSH)",
-    role: "MTV Hustle",
-    tag: "MTV HUSTLE RECOGNITION",
-    highlight: "Direct recognition and tribute artwork for MTV Hustle performer Daksh aka Dhadkan.",
+    role: "MTV Hustle Winner",
+    tag: "MTV HUSTLE WINNER",
+    highlight: "Direct recognition and tribute artwork for MTV Hustle winner Daksh aka Dhadkan.",
     instagramUrl: "https://www.instagram.com/daksh.aka.dhadkan/",
   },
 ];
