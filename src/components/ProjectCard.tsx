@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Play } from "lucide-react";
 import { Project } from "@/data/projects";
 import { CUSTOM_EASE } from "@/lib/animations";
 
@@ -12,57 +11,7 @@ interface ProjectCardProps {
   index: number;
 }
 
-const placeholderColors = [
-  "#1c1c1c",
-  "#1a1a2e",
-  "#16213e",
-  "#1b2838",
-  "#222222",
-  "#181818",
-];
-
-function isPlaceholder(src: string) {
-  return !src || src.includes("placeholder-");
-}
-
-function PlaceholderThumb({ project, index }: { project: Project; index: number }) {
-  const isVideo = project.mode === "video";
-  return (
-    <div
-      className="w-full h-full flex flex-col items-center justify-center gap-3 select-none"
-      style={{ backgroundColor: placeholderColors[index % placeholderColors.length] }}
-    >
-      <span
-        className="font-display font-black leading-none"
-        style={{ fontSize: "clamp(36px,5vw,64px)", color: "rgba(242,240,233,0.14)" }}
-      >
-        {project.number}
-      </span>
-      <span
-        className="font-mono text-[9px] tracking-[0.2em] uppercase text-center px-4"
-        style={{ color: "rgba(242,240,233,0.3)" }}
-      >
-        {isVideo ? "VIDEO EDIT" : "POSTER DESIGN"}
-      </span>
-      <span
-        className="font-mono text-[9px] tracking-[0.16em] text-center px-4"
-        style={{ color: "rgba(228,67,57,0.6)" }}
-      >
-        [ ADD {isVideo ? "FOOTAGE" : "ARTWORK"} ]
-      </span>
-    </div>
-  );
-}
-
 export default function ProjectCard({ project, onClick, index }: ProjectCardProps) {
-  const isVideo = project.mode === "video";
-  const showPlaceholder = isPlaceholder(project.thumbnail);
-
-  // Consistent aspect ratio:
-  // Posters: always 3/4
-  // Videos: always 16/9
-  const aspectClass = isVideo ? "aspect-[16/9]" : "aspect-[3/4]";
-
   return (
     <motion.article
       initial={{ opacity: 0, y: 24 }}
@@ -70,66 +19,148 @@ export default function ProjectCard({ project, onClick, index }: ProjectCardProp
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.45, delay: index * 0.05, ease: CUSTOM_EASE }}
       onClick={onClick}
-      className="group cursor-pointer flex flex-col"
+      className="group cursor-pointer flex flex-col bg-transparent"
     >
-      {/* Thumbnail wrapper */}
+      {/* ── 3:4 POSTER CONTAINER ── */}
       <div
-        className={`relative w-full overflow-hidden ${aspectClass} border border-[#151515]/10`}
-        style={{ backgroundColor: "#1a1a1a" }}
+        className="relative w-full aspect-[3/4] overflow-hidden border-2 border-[#151515] bg-[#1a1a1a] shadow-[4px_4px_0px_#151515] sm:shadow-[6px_6px_0px_#151515]"
       >
-        {showPlaceholder ? (
-          <PlaceholderThumb project={project} index={index} />
-        ) : (
-          <Image
-            src={project.thumbnail}
-            alt={project.title}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-        )}
+        {/* Poster Image */}
+        <Image
+          src={project.thumbnail}
+          alt={project.title}
+          fill
+          className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
+        />
 
-        {/* Video play icon overlay */}
-        {isVideo && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-13 h-13 rounded-full bg-[#E44339]/90 flex items-center justify-center transition-transform duration-300 group-hover:scale-110 shadow-lg">
-              <Play className="w-5 h-5 text-white ml-0.5" fill="white" />
+        {/* ── RESTING BADGE: Visible before hover ── */}
+        <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5 bg-[#151515]/90 border border-white/10 px-2 py-0.5 sm:px-2.5 sm:py-1 backdrop-blur-md shadow-md pointer-events-none group-hover:opacity-0 transition-opacity duration-200">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#E44339] animate-pulse" />
+          <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.14em] font-bold text-white uppercase">
+            {project.views}
+          </span>
+        </div>
+
+        {/* ── HOVER OVERLAY: Attention-grabbing results in full poster view ── */}
+        <div className="absolute inset-0 z-20 bg-[#151515]/94 backdrop-blur-md p-3.5 sm:p-5 flex flex-col justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-250 select-none">
+          {/* Top Row */}
+          <div className="flex items-center justify-between border-b border-white/10 pb-2">
+            <span className="font-mono text-[8px] sm:text-[9.5px] tracking-[0.2em] text-[#E44339] uppercase font-bold">
+              [ {project.badge || "VERIFIED RESULT"} ]
+            </span>
+            <span className="font-mono text-[8.5px] sm:text-[10px] tracking-[0.16em] text-[#777777]">
+              NO. {project.number}
+            </span>
+          </div>
+
+          {/* Center Results Section */}
+          <div className="flex flex-col items-center justify-center text-center my-auto py-1">
+            <span className="font-mono text-[8.5px] sm:text-[10px] tracking-[0.24em] text-white/60 uppercase font-medium mb-0.5">
+              AUDIENCE IMPACT
+            </span>
+            <div className="flex items-baseline justify-center gap-1">
+              <span className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#E44339] tracking-[-0.03em] leading-none">
+                {project.views}
+              </span>
+              <span className="font-mono text-[11px] sm:text-[12px] font-bold text-white/90 tracking-wider">
+                VIEWS
+              </span>
+            </div>
+
+            {/* Recognition & Artist Mention (with custom orange clickable link) */}
+            <div className="mt-2.5 px-2">
+              {project.artistMention ? (
+                <p className="font-body text-[11px] sm:text-[13px] text-[#F2F0E9]/90 leading-snug">
+                  {project.artistMention.prefix}
+                  <a
+                    href={project.artistMention.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-[#FF7A00] font-bold underline decoration-[#FF7A00]/50 underline-offset-2 hover:text-[#FFA347] transition-colors"
+                  >
+                    {project.artistMention.name}
+                  </a>
+                  {project.artistMention.role && (
+                    <span className="text-white/60 text-[10px] sm:text-[11px] ml-1">
+                      {project.artistMention.role}
+                    </span>
+                  )}
+                </p>
+              ) : (
+                <p className="font-body text-[11px] sm:text-[13px] text-[#F2F0E9]/85 leading-snug">
+                  {project.resultText}
+                </p>
+              )}
             </div>
           </div>
-        )}
 
-        {/* Hover dark overlay */}
-        <div className="absolute inset-0 bg-[#151515]/0 group-hover:bg-[#151515]/25 transition-colors duration-300 pointer-events-none" />
+          {/* Bottom Action Buttons */}
+          <div className="flex items-center gap-2 pt-2 border-t border-white/10">
+            {project.instagramUrl && (
+              <a
+                href={project.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex-1 flex items-center justify-center gap-1.5 bg-[#E44339] hover:bg-white hover:text-[#151515] text-white font-display font-bold text-[9.5px] sm:text-[11px] tracking-[0.12em] py-2 px-2.5 uppercase transition-colors shadow-md shrink-0"
+              >
+                <svg
+                  className="w-3 h-3"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="2" y="2" width="20" height="20" rx="5" />
+                  <circle cx="12" cy="12" r="4" />
+                  <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+                </svg>
+                VIEW ON INSTA ↗
+              </a>
+            )}
 
-        {/* View arrow icon */}
-        <div className="absolute top-2 right-2 sm:top-3 sm:right-3 w-6 h-6 sm:w-8 sm:h-8 bg-[#E44339] flex items-center justify-center opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200">
-          <svg
-            className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="7" y1="17" x2="17" y2="7" />
-            <polyline points="7 7 17 7 17 17" />
-          </svg>
+            <button
+              onClick={onClick}
+              className="p-2 bg-[#202020] hover:bg-white hover:text-[#151515] text-white/80 transition-colors border border-white/10 shrink-0"
+              aria-label="Expand artwork details"
+            >
+              <svg
+                className="w-3 h-3"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="15 3 21 3 21 9" />
+                <polyline points="9 21 3 21 3 15" />
+                <line x1="21" y1="3" x2="14" y2="10" />
+                <line x1="3" y1="21" x2="10" y2="14" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Meta — clean number and title, category removed */}
+      {/* ── CARD FOOTER: Meta ── */}
       <div className="pt-2 sm:pt-3 flex flex-col gap-0.5">
         <div className="flex items-baseline justify-between gap-1.5">
-          <div className="flex items-baseline gap-1.5 sm:gap-2.5 min-w-0">
+          <div className="flex items-baseline gap-1.5 sm:gap-2 min-w-0">
             <span className="font-mono text-[10px] sm:text-[11px] font-bold text-[#E44339] tracking-[0.14em] shrink-0">
               {project.number}
             </span>
-            <h3 className="font-display font-bold text-[13px] sm:text-[15px] md:text-[18px] text-[#151515] leading-tight truncate group-hover:text-[#E44339] transition-colors duration-200">
+            <h3 className="font-display font-bold text-[13px] sm:text-[15px] md:text-[17px] text-[#151515] leading-tight truncate group-hover:text-[#E44339] transition-colors duration-200">
               {project.title}
             </h3>
           </div>
-          <span className="font-mono text-[9px] sm:text-[10px] text-[#777777] shrink-0">{project.year}</span>
+          <span className="font-mono text-[9px] sm:text-[10px] text-[#777777] shrink-0 font-medium">
+            {project.views}
+          </span>
         </div>
       </div>
     </motion.article>

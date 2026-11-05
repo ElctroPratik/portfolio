@@ -5,6 +5,13 @@
 
 export type ProjectMode = "design" | "video";
 
+export interface ArtistMention {
+  prefix: string;
+  name: string;
+  role?: string;
+  url: string;
+}
+
 export interface Project {
   id: string;
   mode: ProjectMode;
@@ -15,6 +22,11 @@ export interface Project {
   description: string;
   credits?: string;
   medium?: string;
+  views: string;
+  instagramUrl: string;
+  badge?: string;
+  resultText?: string;
+  artistMention?: ArtistMention;
 }
 
 export const designProjects: Project[] = [
@@ -29,6 +41,15 @@ export const designProjects: Project[] = [
       "Visual identity and cover artwork for Rajasthani hip-hop artist Akshat Jakhar. Designed around high-impact custom jagged typography, vivid crimson backdrop, and direct-flash editorial photography with cuban link details.",
     credits: "Akshat Jakhar / Rajasthani Hip Hop",
     medium: "Editorial Poster / Single Artwork",
+    views: "~2.5K",
+    instagramUrl: "https://www.instagram.com/p/DeNa8sEoev0/",
+    badge: "ARTIST RECOGNITION",
+    artistMention: {
+      prefix: "Got recognition from ",
+      name: "Akshat",
+      role: "(rapper)",
+      url: "https://www.instagram.com/akshatjakhar/",
+    },
   },
   {
     id: "p2",
@@ -41,6 +62,10 @@ export const designProjects: Project[] = [
       "Official concert tour poster for Naam Sujal live at Epitome The Mills, Pune. Collaborative visual identity for Nagpur Moshpit Corporation (NMC) x Harmless Pratik, ticketing via District by Zomato and Noise FM partnership.",
     credits: "Nagpur Moshpit Corporation x Naam Sujal",
     medium: "Live Tour Poster / Event Branding",
+    views: "~1K",
+    instagramUrl: "https://www.instagram.com/p/Dep86-uIB_a/",
+    badge: "EVENT POSTER",
+    resultText: "Official concert tour artwork & venue branding",
   },
   {
     id: "p3",
@@ -53,6 +78,15 @@ export const designProjects: Project[] = [
       "Editorial vintage grunge poster artwork for artist Parv highlighting Moradabad roots and Agyakaari narrative. Built with distressed paper textures, Devanagari and Latin hybrid typography, and retro telecommunications imagery.",
     credits: "Parv / Moradabad",
     medium: "Artist Showcase / Editorial Poster",
+    views: "~80K",
+    instagramUrl: "https://www.instagram.com/p/DeHfBmFI1KK/",
+    badge: "VIRAL REACH",
+    artistMention: {
+      prefix: "Around 80K views & recognition from ",
+      name: "Parv",
+      role: "(rapper)",
+      url: "https://www.instagram.com/itsparvman/",
+    },
   },
   {
     id: "p4",
@@ -65,6 +99,10 @@ export const designProjects: Project[] = [
       "Official single and tour artwork for Whysokai's 'Terrible Time To Meet Me'. Merges gritty halftone texture screening with dynamic kinetic white vector flow-lines and warm stage performance lighting.",
     credits: "Whysokai",
     medium: "Single Artwork / Tour Poster",
+    views: "~2K",
+    instagramUrl: "https://www.instagram.com/p/DeHeI2jIAv8/",
+    badge: "OFFICIAL RELEASE",
+    resultText: "Official single release artwork & tour promo",
   },
   {
     id: "p5",
@@ -77,6 +115,15 @@ export const designProjects: Project[] = [
       "Tribute and victory poster for Daksh aka Dhadkan, winner of MTV Hustle. Incorporates iconic Hindi punchlines, retro starbursts, newsprint halftone screening, and rhythmic 'WE ARE THE CULTURE' typography.",
     credits: "Daksh aka Dhadkan / MTV Hustle",
     medium: "Official Cultural Tribute Poster",
+    views: "~10K",
+    instagramUrl: "https://www.instagram.com/p/DeVXd2-Iuwv/",
+    badge: "MTV HUSTLE",
+    artistMention: {
+      prefix: "Got recognition from ",
+      name: "Dhadkan",
+      role: "(rapper)",
+      url: "https://www.instagram.com/daksh.aka.dhadkan/",
+    },
   },
   {
     id: "p6",
@@ -89,10 +136,12 @@ export const designProjects: Project[] = [
       "Official artwork for Sirohi's 'I Am That Kid'. Features custom geometric Devanagari lettering, deep royal maroon floral paisley background, golden halo lighting, and rich embroidered fashion styling.",
     credits: "Sirohi / I Am That Kid",
     medium: "Official Single Artwork / Artist Poster",
+    views: "~2K",
+    instagramUrl: "https://www.instagram.com/p/DeQUEU_oYFt/",
+    badge: "SINGLE ARTWORK",
+    resultText: "Official single artwork release & digital distribution",
   },
 ];
 
-// In video mode, user requested to show a dedicated "COOKING SOMETHING" showcase rather than video cards
 export const videoProjects: Project[] = [];
-
 export const allProjects = [...designProjects];
