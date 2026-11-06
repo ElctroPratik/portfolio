@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { VideoProject } from "@/data/videos";
 import { CUSTOM_EASE } from "@/lib/animations";
@@ -19,8 +19,7 @@ function fmtTime(seconds: number): string {
 
 export default function VideoCard({ video, index }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -28,7 +27,6 @@ export default function VideoCard({ video, index }: Props) {
   const [duration, setDuration] = useState(0);
   const [hasStarted, setHasStarted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const [showControls, setShowControls] = useState(true);
   const [isBuffering, setIsBuffering] = useState(false);
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -62,11 +60,15 @@ export default function VideoCard({ video, index }: Props) {
 
   const toggleFullscreen = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!containerRef.current) return;
+    if (!videoRef.current) return;
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
     } else {
-      containerRef.current.requestFullscreen().catch(() => {});
+      if (videoRef.current.requestFullscreen) {
+        videoRef.current.requestFullscreen().catch(() => {});
+      } else if ((videoRef.current as any).webkitEnterFullscreen) {
+        (videoRef.current as any).webkitEnterFullscreen();
+      }
     }
   };
 
@@ -79,46 +81,22 @@ export default function VideoCard({ video, index }: Props) {
     setCurrentTime(pos * duration);
   };
 
-  // Fade out controls during active playback
-  const triggerControls = () => {
-    setShowControls(true);
-    if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-    if (isPlaying) {
-      controlsTimeoutRef.current = setTimeout(() => {
-        setShowControls(false);
-      }, 2400);
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-    };
-  }, []);
-
   return (
     <motion.article
+      ref={cardRef}
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1, ease: CUSTOM_EASE }}
       className="group relative flex flex-col bg-[#151515] border-2 border-[#151515] shadow-[6px_6px_0px_#151515] overflow-hidden"
     >
-      {/* ── 16:9 VIDEO CONTAINER ── */}
+      {/* ── 16:9 VIDEO CONTAINER (100% UNOBSTRUCTED VIDEO CANVAS) ── */}
       <div
-        ref={containerRef}
         className="relative w-full aspect-video bg-black overflow-hidden select-none cursor-pointer"
-        onMouseEnter={() => {
-          setIsHovered(true);
-          triggerControls();
-        }}
-        onMouseLeave={() => {
-          setIsHovered(false);
-          if (isPlaying) setShowControls(false);
-        }}
-        onMouseMove={triggerControls}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         onClick={togglePlay}
       >
-        {/* HTML5 Native Video Stream (Zero YouTube/Cloudinary branding) */}
+        {/* HTML5 Native Video Stream (Clean playback without any bottom overlay) */}
         <video
           ref={videoRef}
           src={video.videoUrl}
@@ -140,27 +118,27 @@ export default function VideoCard({ video, index }: Props) {
           onPlaying={() => {
             setIsBuffering(false);
             setIsPlaying(true);
+            setHasStarted(true);
           }}
           onPause={() => setIsPlaying(false)}
           onEnded={() => {
             setIsPlaying(false);
             setHasStarted(false);
-            setShowControls(true);
           }}
         />
 
-        {/* ── RESTING BADGES (Shown when idle & not hovering) ── */}
+        {/* ── RESTING BADGES (Shown only when idle before video starts) ── */}
         {!hasStarted && !isHovered && (
           <>
             {/* Top-Left: Primary Tag */}
-            <div className="absolute top-3 left-3 z-10">
+            <div className="absolute top-3 left-3 z-10 pointer-events-none">
               <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.2em] uppercase font-bold bg-[#E44339] text-white px-2.5 py-1 shadow-md">
                 {video.tags[0]}
               </span>
             </div>
 
             {/* Top-Right: High-Impact Views Badge */}
-            <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 bg-[#151515]/90 border border-white/10 px-3 py-1 backdrop-blur-md shadow-md">
+            <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 bg-[#151515]/90 border border-white/10 px-3 py-1 backdrop-blur-md shadow-md pointer-events-none">
               <span className="w-2 h-2 rounded-full bg-[#E44339] animate-pulse" />
               <span className="font-mono text-[10px] sm:text-[11px] tracking-[0.16em] uppercase font-bold text-white">
                 {video.views} VIEWS
@@ -178,7 +156,7 @@ export default function VideoCard({ video, index }: Props) {
           </>
         )}
 
-        {/* ── ATTENTION-GRABBING RESULTS HOVER OVERLAY (Full Screen) ── */}
+        {/* ── ATTENTION-GRABBING RESULTS HOVER OVERLAY (Shown on hover before playing) ── */}
         <AnimatePresence>
           {!hasStarted && isHovered && (
             <motion.div
@@ -265,93 +243,89 @@ export default function VideoCard({ video, index }: Props) {
             <div className="w-8 h-8 border-3 border-[#E44339] border-t-transparent rounded-full animate-spin" />
           </div>
         )}
+      </div>
 
-        {/* ── SLEEK FLOATING PLAYER CONTROLS (Active Playback) ── */}
-        {hasStarted && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: showControls ? 1 : 0 }}
-            transition={{ duration: 0.2 }}
-            className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black/95 via-black/70 to-transparent pt-6 pb-2.5 px-3.5"
-            onClick={(e) => e.stopPropagation()}
+      {/* ── DEDICATED PLAYER STRIP (BELOW THE VIDEO FRAME - NOTHING OVERLAYS VIDEO) ── */}
+      <div
+        className="bg-[#0e0e0e] border-t border-white/10 px-3.5 pt-2.5 pb-2.5 select-none"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Scrubber Progress Bar Timeline */}
+        <div
+          className="w-full h-1.5 hover:h-2.5 bg-white/15 cursor-pointer relative group mb-2 transition-all rounded-xs"
+          onClick={handleSeek}
+          title="Click to seek"
+        >
+          <div
+            className="h-full bg-[#E44339] relative rounded-xs transition-none"
+            style={{ width: `${progress}%` }}
           >
-            {/* Scrubber Progress Bar */}
-            <div
-              className="w-full h-1.5 hover:h-2 bg-white/20 cursor-pointer relative group mb-2.5 transition-all"
-              onClick={handleSeek}
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-3 h-3 bg-white rounded-full shadow-md scale-0 group-hover:scale-100 transition-transform" />
+          </div>
+        </div>
+
+        {/* Controls Row Below Scrubber */}
+        <div className="flex items-center justify-between text-white">
+          <div className="flex items-center gap-3">
+            {/* Play / Pause Toggle Button */}
+            <button
+              onClick={togglePlay}
+              className="p-1 hover:text-[#E44339] transition-colors focus:outline-none"
+              aria-label={isPlaying ? "Pause video" : "Play video"}
             >
-              <div
-                className="h-full bg-[#E44339] relative"
-                style={{ width: `${progress}%` }}
-              >
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-3.5 h-3.5 bg-white rounded-full shadow-md scale-0 group-hover:scale-100 transition-transform" />
-              </div>
-            </div>
-
-            {/* Controls Button Row */}
-            <div className="flex items-center justify-between text-white">
-              <div className="flex items-center gap-3">
-                {/* Play/Pause */}
-                <button
-                  onClick={togglePlay}
-                  className="p-1 hover:text-[#E44339] transition-colors"
-                  aria-label={isPlaying ? "Pause" : "Play"}
-                >
-                  {isPlaying ? (
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                      <rect x="6" y="4" width="4" height="16" />
-                      <rect x="14" y="4" width="4" height="16" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                      <polygon points="6,3 20,12 6,21" />
-                    </svg>
-                  )}
-                </button>
-
-                {/* Mute/Unmute */}
-                <button
-                  onClick={toggleMute}
-                  className="p-1 hover:text-[#E44339] transition-colors"
-                  aria-label={isMuted ? "Unmute" : "Mute"}
-                >
-                  {isMuted ? (
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                      <line x1="23" y1="9" x2="17" y2="15" />
-                      <line x1="17" y1="9" x2="23" y2="15" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-                    </svg>
-                  )}
-                </button>
-
-                {/* Time Display */}
-                <span className="font-mono text-[10px] tracking-wider text-white/80 tabular-nums">
-                  {fmtTime(currentTime)} / {fmtTime(duration)}
-                </span>
-              </div>
-
-              {/* Right: Fullscreen */}
-              <button
-                onClick={toggleFullscreen}
-                className="p-1 hover:text-[#E44339] transition-colors"
-                aria-label="Fullscreen"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="15 3 21 3 21 9" />
-                  <polyline points="9 21 3 21 3 15" />
-                  <line x1="21" y1="3" x2="14" y2="10" />
-                  <line x1="3" y1="21" x2="10" y2="14" />
+              {isPlaying ? (
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="6" y="4" width="4" height="16" rx="1" />
+                  <rect x="14" y="4" width="4" height="16" rx="1" />
                 </svg>
-              </button>
-            </div>
-          </motion.div>
-        )}
+              ) : (
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="6,3 20,12 6,21" />
+                </svg>
+              )}
+            </button>
+
+            {/* Mute / Unmute Button */}
+            <button
+              onClick={toggleMute}
+              className="p-1 hover:text-[#E44339] transition-colors focus:outline-none"
+              aria-label={isMuted ? "Unmute audio" : "Mute audio"}
+            >
+              {isMuted ? (
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <line x1="23" y1="9" x2="17" y2="15" />
+                  <line x1="17" y1="9" x2="23" y2="15" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                </svg>
+              )}
+            </button>
+
+            {/* Time Stamp */}
+            <span className="font-mono text-[10px] tracking-wider text-white/80 tabular-nums">
+              {fmtTime(currentTime)} / {fmtTime(duration)}
+            </span>
+          </div>
+
+          {/* Right Side: Fullscreen Button */}
+          <button
+            onClick={toggleFullscreen}
+            className="p-1 hover:text-[#E44339] transition-colors focus:outline-none"
+            aria-label="Toggle Fullscreen"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 3 21 3 21 9" />
+              <polyline points="9 21 3 21 3 15" />
+              <line x1="21" y1="3" x2="14" y2="10" />
+              <line x1="3" y1="21" x2="10" y2="14" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* ── CARD FOOTER (Editorial & Clean) ── */}
